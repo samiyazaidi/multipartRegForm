@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PhoneDir from "./phone";
-import React from 'react';
-import { ReactCountryFlag } from '@fadi-ui/react-country-flag';
+import React from "react";
+import { ReactCountryFlag } from "@fadi-ui/react-country-flag";
 
 import axios from 'axios'
 import {Input} from '@nextui-org/input';
@@ -10,14 +10,13 @@ import { AddressIcon, LocIcon, LockIcon, MailIcon, } from "./mailicon";
 import { EyeFilledIcon } from "./eyeicon";
 import { EyeSlashFilledIcon } from "./eyeicon";
 import { PerIcon } from "./mailicon";
-import {Select, SelectItem} from "@nextui-org/react";
-import {Button} from "@nextui-org/react";
-import {Card, CardBody} from "@nextui-org/react";
-
+import { Select, SelectItem } from "@nextui-org/react";
+import { Button } from "@nextui-org/react";
+import { Card, CardBody } from "@nextui-org/react";
 
 export const Signup = () => {
   const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState(new Set([]));
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState("");
   const [city, setCity] = useState([]);
@@ -41,32 +40,28 @@ export const Signup = () => {
         const response = await fetch(
           "https://countriesnow.space/api/v0.1/countries/states"
         );
-       
+
         const result = await response.json();
         if (!result.error) {
           const sortedCountries = result.data.sort((a, b) =>
             a.name.localeCompare(b.name)
           );
           setCountries(sortedCountries);
-          
         } else {
           console.error("Error fetching countries:", result.msg);
         }
-        
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
     };
-    
+
     fetchCountries();
-    
   }, [selectedCountry]);
  
   const instance = axios.create({
     adapter: axios.defaults.adapter, 
   });
   useEffect(() => {
-    
     const fetchCities = async () => {
       try{
         const { data } = await axios.post(
@@ -96,9 +91,9 @@ export const Signup = () => {
 
  
 
- useEffect(() => {
+  useEffect(() => {
     if (phone.length > 0) {
-      setSelectedPhone(phone); 
+      setSelectedPhone(phone);
     }
   }, [phone]);
   
@@ -123,37 +118,33 @@ const handleCountryChange = (countryName) => {
     ? selected.states.map((state) => state.name) 
     : [];
     setStates(stateNames);
-     
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (emailError || passwordError  || phoneError) {
-      alert('Form submission prevented due to validation errors.');
+    if (emailError || passwordError || phoneError) {
+      alert("Form submission prevented due to validation errors.");
       return;
     }
-  
-    
-      console.log({ firmname, email, password,selectedCountry });
+
+    console.log({ firmname, email, password, selectedCountry });
     // }
-      // axios.post('/',{
-      //   firmName:firmname,
-      //   email:email,
-      //   country:countries,
-      //   state: states,
-      //   city:city,
-      //   address:address,
-      //   password:password,
-      // })
-      // .then((res)=>{
-      //   console.log(res)
-      // })
-      // .catch((err)=>{
-      //   console.log(err)
-      // })
-    };
-    
-    
+    // axios.post('/',{
+    //   firmName:firmname,
+    //   email:email,
+    //   country:countries,
+    //   state: states,
+    //   city:city,
+    //   address:address,
+    //   password:password,
+    // })
+    // .then((res)=>{
+    //   console.log(res)
+    // })
+    // .catch((err)=>{
+    //   console.log(err)
+    // })
+  };
 
   return (
     
@@ -451,8 +442,5 @@ const handleCountryChange = (countryName) => {
       </CardBody>
 </Card>
     </div>
-
-
   );
 };
-
