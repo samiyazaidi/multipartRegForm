@@ -15,7 +15,7 @@ import {Button} from "@nextui-org/react";
 import {Card, CardBody} from "@nextui-org/react";
 
 
-export const Signup = () => {
+export const NSignup = () => {
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [states, setStates] = useState([]);
@@ -32,7 +32,9 @@ export const Signup = () => {
   const[password,setPassword]=useState('');
   const [phoneError, setPhoneError] = useState("");
   const [isVisible, setIsVisible] = React.useState(false);
-
+  const [passwordError, setPasswordError] = useState("");
+  const [confPasswordError, setConfPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState('');
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   useEffect(() => {
@@ -65,6 +67,44 @@ export const Signup = () => {
   const instance = axios.create({
     adapter: axios.defaults.adapter, 
   });
+  useEffect(()=>{
+    const validatePassword = (password,confirmPassword) => {
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      return passRegex.test(password);
+    };
+    if (password) {
+      
+      if (!/[!@#+-_=$%^&*(),.?":{}|<>]/.test(password)) {
+        setPasswordError("Password must contain a special character");
+      } else if (!/[A-Z]/.test(password)) {
+        setPasswordError("Password must contain an uppercase letter");
+      } else if (!/[a-z]/.test(password)) {
+        setPasswordError("Password must contain a lowercase letter");
+      } else if (!/\d/.test(password)) {
+        setPasswordError("Password must contain a number");
+      } else if (password.length < 8) {
+        setPasswordError("Password must be at least 8 characters long");
+      } else if (!validatePassword(password)) {
+        setPasswordError("Invalid password format");
+      } else {
+        setPasswordError(""); // No error
+      }
+     } else {
+        setPasswordError("");
+      }
+      if(confirmPassword){
+        if(confirmPassword !== password){
+          setConfPasswordError("Password doesn't match")
+        }
+        else{
+          setConfPasswordError("");
+        }
+      }
+      else{
+        setConfPasswordError("");
+      }
+  }, 
+   [password, confirmPassword]);
   useEffect(() => {
     
     const fetchCities = async () => {
@@ -128,9 +168,13 @@ const handleCountryChange = (countryName) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (emailError || passwordError  || phoneError) {
+    if (emailError || passwordError  || confPasswordError|| phoneError) {
       alert('Form submission prevented due to validation errors.');
       return;
+    }
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
     }
   
     
@@ -380,62 +424,43 @@ const handleCountryChange = (countryName) => {
         </div>
         <div className="flex w-full  mt-2 md:mt-4 gap-4">
         <Input
+        
+        label="Password"
+        placeholder="Enter your password"
+        type = "password"
       labelPlacement="outside"
-      endContent={
-        <button
-          aria-label="toggle password visibility"
-          className="focus:outline-none"
-          type="button"
-          onClick={toggleVisibility}
-        >
-          {isVisible ? (
-            <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
-          ) : (
-            <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
-          )}
-        </button>
-      }
       startContent={
         <LockIcon
          className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
       }
-      label="Password"
-      placeholder="Enter your password"
-      type={isVisible ? "text" : "password"}
-      
             autoComplete="off"
             name="password"
             id="password"
             isRequired
-            validate={(value)=>{
-              const validatePassword = (value) => {
-                const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-                return passRegex.test(value);
-              };
-             
-                if (!/[!@#+-_=$%^&*(),.?":{}|<>]/.test(value)) {
-                  return "Password must contain a special character";
-                } else if (!/[A-Z]/.test(value)) {
-                  return "Password must contain an uppercase letter";
-                } else if (!/[a-z]/.test(value)) {
-                  return "Password must contain a lowercase letter";
-                } else if (!/\d/.test(value)) {
-                  return "Password must contain a number";
-                } else if (value.length < 8) {
-                  return "Password must be at least 8 characters long";
-                } else if (!validatePassword(value)) {
-                  return "Invalid password format";
-                } else {
-                  return value==null; 
-                }
-                
-            }}
             variant="bordered"
             onChange={(e) => setPassword(e.target.value)}        
           />
-          </div> 
-          
-          
+          </div>
+          <span style={{ color: 'red', fontSize: '13px' }}>{passwordError}</span> 
+          <div className="flex w-full  mt-2 md:mt-4 gap-4">
+          <Input
+           label = "Connfirm Password"
+           labelPlacement="outside"
+            type="password"
+            autoComplete="off"
+            name="confirmPassword"
+            id="confirmPassword"
+            placeholder="Re enter Your Password"
+            variant="bordered"
+            startContent={
+                <LockIcon
+                 className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+              }
+            isRequired
+            onChange={(e) => {setConfirmPassword(e.target.value);}}
+          />
+        </div>
+        <span style={{ color: 'red', fontSize: '13px' }}>{confPasswordError}</span>
         <Button radius="sm"  type="submit" className="w-full  mt-2 md:mt-4 text-[18px] bg-gradient-to-tr from-purple-400 to-indigo-300 text-white shadow-lg" >
           Register
         </Button>

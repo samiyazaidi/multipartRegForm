@@ -3,21 +3,19 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { SignIn } from './components/signin';
 import { Signup } from './components/signup';
-
-function App() {
-
+import { NSignup } from './components/newsignup';
+const App=() =>{
   return (
+   
   
        <BrowserRouter>
        <Routes>
        
         <Route path= "/" element= {<Signup/>}></Route>
-        <Route path= "/signin" element= {<SignIn/>}></Route>
-        
+        <Route path= "/signup" element= {<NSignup/>}></Route>
+        <Route path= "/login" element= {<SignIn/>}></Route>
        </Routes>
        </BrowserRouter>
-       
-      
     
   )
 }
