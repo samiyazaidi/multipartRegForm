@@ -8,13 +8,13 @@ import {
   useQuery,
   
 } from '@tanstack/react-query'
+import { otpVerification, verifyDevice } from "./apiService";
 
 
-const Device = ({ onPrevious, onNext,formData, setFormData })=>{
+const Device = ({ onPrevious, onNext,formData, setFormData,location,setLocation })=>{
    
     const [deviceId,setDeviceId]= useState('');
-    const[serialNumber,setSerialNumber]=useState('');
-    const [error, setError] = useState(false);
+    const[serialNo,setSerialNo]=useState('');
 
     const instance = axios.create({
       adapter: axios.defaults.adapter, 
@@ -24,34 +24,9 @@ const Device = ({ onPrevious, onNext,formData, setFormData })=>{
       queryFn: () => otpVerification(formData.email), 
       enabled: false,
     });
-    // const matchId= async()=>{
-    //   try{ 
-    //     return await axios.post('https://staging.enggenv.com/api/v1/user/validateDevice',
-    //       {deviceId: formData.deviceId, serialNumber: formData.serialNumber },
-    // {
-    //   headers: {
-    //   'Content-Type': 'application/json',
-    // },
-    // })
-    // }
-    // catch(e){
-    // console.log("Failed to verify device:", e);
-    // }}
     
 const {mutate} = useMutation({
-  mutationFn: async(info)=>{
-    try{ 
-      return await axios.post('https://staging.enggenv.com/api/v1/user/validateDevice',
-      info,
-  {
-    headers: {
-    'Content-Type': 'application/json',
-  },
-  })
-}
-  catch(e){
-  console.log("Failed to verify device:", e);
-  }},
+  mutationFn:verifyDevice,
   onSuccess: (response)=>{
 
     console.log('Device verified successfully:', response.data);
@@ -66,29 +41,11 @@ const {mutate} = useMutation({
 
 })
   
- 
-    const otpVerification = async (email) => {
-      const response = await fetch(`https://staging.enggenv.com/api/v1/user/sendOtp?email=${email}`);
-      if (!response.ok) {
-        throw new Error('Failed to verify OTP');
-      }
-      return response.json();
-    };
   
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const info = {deviceId: formData.deviceId, serialNo: formData.serialNumber }
-    mutate(info);
-    // console.log("d",data)
-    // if (!isValid) {
-    //   alert(`Incorrect Device Id or Serial Number`)
-      
-    // }
-    // else{
-    //   refetch()
-    //   console.log("d",data)
-    //   if (onNext) onNext();
-    // }
+    const details = {deviceId: location.deviceId, serialNo: location.serialNo }
+    mutate(details);
   };
   
     return(
@@ -114,7 +71,7 @@ const {mutate} = useMutation({
                        label="Device Id"
                        labelPlacement="outside"
                        variant="bordered" 
-                       value ={formData.deviceId}                      
+                       value ={location.deviceId}                      
                        placeholder=""
                        maxLength={8}
                        type="text"
@@ -123,7 +80,7 @@ const {mutate} = useMutation({
                        id="deviceId"
                        isRequired
                        onChange={(e) => {setDeviceId(e.target.value);
-                        setFormData({ ...formData, deviceId: e.target.value })
+                        setLocation({ ...location, deviceId: e.target.value })
                       }
                        }
                        
@@ -135,16 +92,16 @@ const {mutate} = useMutation({
                        label="Serial Number"
                        labelPlacement="outside"
                        variant="bordered"
-                       value={formData.serialNumber}
+                       value={location.serialNo}
                        placeholder=""
                        maxLength={13}
                        type="number"
                        autoComplete="off"
-                       name="serialNumber"
-                       id="serialNumber"
+                       name="serialNo"
+                       id="serialNo"
                        isRequired
-                       onChange={(e) => {setSerialNumber(e.target.value);
-                        setFormData({ ...formData, serialNumber: e.target.value })}
+                       onChange={(e) => {setSerialNo(e.target.value);
+                        setLocation({ ...location, serialNo: e.target.value })}
                        }
                        
                      />
@@ -157,12 +114,7 @@ const {mutate} = useMutation({
                     Next
                   </Button>
                   </div>
-                  <div className="text-center">
-                    <span className="text-sm ">
-                    
-          </span>
                   
-                  </div>
       </form>
       
       </CardBody>

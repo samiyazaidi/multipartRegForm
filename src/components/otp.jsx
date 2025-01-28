@@ -1,54 +1,74 @@
-import {InputOtp} from "@nextui-org/react";
+import {form, InputOtp} from "@nextui-org/react";
 import { Card, CardBody } from "@nextui-org/react";
 import {useForm, Controller} from "react-hook-form";
 import {Button} from "@nextui-org/react";
 import { useEffect, useState } from "react";
+import OtpTimer from "otp-timer";
+import { otpVerification, signUp } from "./apiService";
+
 import {
   useQuery,
-  
+  useMutation
 } from '@tanstack/react-query'
 import React from "react";
-import axios from 'axios'
-import { useParams } from "react-router-dom";
-const  OTP=({onPrevious,formData})=> {
+
+const  OTP=({onPrevious,formData,setFormData,location})=> {
   const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [ otp,setOtp] = useState("")
   const [resendLoading, setResendLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(20);
+  const [seconds, setSeconds] = useState(0);
   const {handleSubmit,control,formState: {errors},} = useForm({
     defaultValues: {
       otp: "",
     },
   });
   useEffect(() => {
-    alert(`Please enter the OTP sent to your email: ${formData.email}`);
+    alert(`Please enter the OTP sent to your email: ${formData.email}`)
+    setResendLoading(true)
+    setTimeout(() => {
+        setResendLoading(false); 
+        setSeconds(20)
+      }, 20000);
+    ;
   }, []);
-  
-
-  const onSubmit = (data) => {
-    
-    if (data.otp === "1111") { 
-      setIsOtpVerified(true); 
-      alert("OTP Verified Successfully!");
-      
-    } else {
-      alert("Invalid OTP. Please try again.");
-    }
-  };
-  const instance = axios.create({
-    adapter: axios.defaults.adapter, 
+  const { data, refetch, error: otpError } = useQuery({
+    queryKey: ["formData", formData.email],
+    queryFn: () => otpVerification(formData.email),
+    enabled: false,
   });
-  const { data, refetch } = useQuery({
-        queryKey: ['formData', formData.email], 
-        queryFn: () => otpVerification(formData.email), 
-        enabled:false
-      });
-  const otpVerification = async (email) => {
-    const response = await fetch(`https://staging.enggenv.com/api/v1/user/sendOtp?email=${email}`);
-    if (!response.ok) {
-      throw new Error('Failed to verify OTP');
+  const {mutate} = useMutation({
+    mutationFn: signUp,
+    onSuccess: (response)=>{
+      console.log(response.data)
+      console.log("form", formData)
+      alert("User Registered Successfully!");
+    },
+    onError:(error)=>{
+      console.log(error)
     }
-    return response.json();
+  })
+    
+  
+  const onSubmit = (data) => {
+    setFormData({ ...formData, otp: data.otp })
+    
+    
+      
+      const info =      {       
+        firmName:formData.firmName,
+        email:formData.email,
+        address : formData.address,
+        contactNo: formData.contactNo,
+        productsList : [location.deviceId],
+        password:formData.password,
+        otp : data.otp
+
+    }
+      mutate(info)
+      console.log("de",info)
+    
   };
+
   const handleRegister = async () => {
     setResendLoading(true)
     refetch()
@@ -56,14 +76,11 @@ const  OTP=({onPrevious,formData})=> {
     
     setTimeout(() => {
       setResendLoading(false); 
+      setSeconds(20)
     }, 20000);
   };
   return (
-    
-   
-    <div 
-        className=" items-center justify-center h-screen bg-indigo-200"
-        >
+    <div className=" items-center justify-center h-screen bg-indigo-200">
           
     <div className="flex items-center justify-center h-screen">
       <Card  className="m-4 p-5" >
@@ -90,6 +107,7 @@ const  OTP=({onPrevious,formData})=> {
             errorMessage={errors.otp && errors.otp.message}
             isInvalid={!!errors.otp}
             length={4}
+            onValueChange={setOtp}
           />
         )}
         rules={{
@@ -100,24 +118,32 @@ const  OTP=({onPrevious,formData})=> {
           },
         }}
       />
-      <Button className="text-[15px] px-4 py-2 ml-6 bg-indigo-200"  onPress={handleRegister} variant="light" radius="sm" isDisabled={resendLoading} >
-        Resend OTP
+      <div className="bg-white">
+      <Button className="text-[15px] px-4 py-2 ml-6 bg-indigo-200" variant="light" radius="sm" isDisabled={resendLoading}  >
+        
+        <OtpTimer
+        // minutes={0}
+        seconds={20}
+        text=" "
+        textColor = "#020617"
+        ButtonText=" Resend OTP "
+        buttonColor="#020617"
+        background = "#c7d2fe"
+        resend={handleRegister}
+      />
       </Button>
-      
+      </div>
       </div>
        <div className="flex justify-end item-center mt-5">
        <Button  radius="full" onPress = {onPrevious}  className="px-2 ml-11 mr-2 mt-2 md:mt-4 text-[15px] text-opacity-80 bg-white text-indigo-500 hover:bg-indigo-500 hover:text-white" >
                     Previous
                   </Button >
       <Button radius="full" type={onSubmit}
-      // isDisabled={!isOtpVerified}
                className="px-2  mt-2 md:mt-4 text-[15px] bg-indigo-500 text-white shadow-lg" >
           Register
         </Button>
       </div>
-        
       </form>
-      
       </CardBody>
 </Card>
 </div>

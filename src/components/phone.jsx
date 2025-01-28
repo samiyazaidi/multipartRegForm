@@ -245,7 +245,7 @@ export const PhoneDir = [
         "code": "CG"
         },
         {
-        "name": "Congo, The Democratic Republic of the Congo",
+        "name": "Congo The Democratic Republic of the Congo",
         "dial_code": "+243",
         "code": "CD"
         },

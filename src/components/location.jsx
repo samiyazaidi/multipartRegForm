@@ -1,22 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import PhoneDir from "./phone";
 import React from 'react';
-import { ReactCountryFlag } from '@fadi-ui/react-country-flag';
+import Flag from 'react-world-flags';
 
 import axios from 'axios'
 import {Input} from '@nextui-org/input';
-import { AddressIcon, LocIcon, LockIcon, MailIcon, PhoneIcon } from "./mailicon";
-import { EyeFilledIcon } from "./eyeicon";
-import { EyeSlashFilledIcon } from "./eyeicon";
-import { PerIcon } from "./mailicon";
-import {Select, SelectItem} from "@nextui-org/react";
+import { AddressIcon, LocIcon, LockIcon, MailIcon, PhoneIcon } from "./icons";
 import {Button} from "@nextui-org/react";
 import {Card, CardBody} from "@nextui-org/react";
-import {
-  useQuery,
-  
-} from '@tanstack/react-query'
 export const Location = ({ onPrevious, onNext, formData,setFormData,location,setLocation }) => {
 
         const [countries, setCountries] = useState([]);
@@ -26,13 +17,12 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
         const [city, setCity] = useState([]);
         const [selectedCity, setSelectedCity] = useState("");
         const [phone, setPhone] = useState([]);
+        const [phoneError, setPhoneError] = useState("");
         const [selectedPhone, setSelectedPhone] = useState("");
         const [flag, setFlag] = useState("");
-        const [phoneNumber, setPhoneNumber] = useState("");
+        const [contactNo, setContactNo] = useState("");
         const [address,setAddress]= useState('');
-        const [isValidated, setIsValidated] = useState(false);
-        const [phoneError, setPhoneError] = useState("");
-
+        const [isValidated, setIsValidated] = useState(false)
         useEffect(() => {
             const fetchCountries = async () => {
               try {
@@ -59,6 +49,18 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
             fetchCountries();
             
           }, [selectedCountry]);
+          useEffect(()=>{
+            const handleStateChange = ()=>{
+              const selected = countries.find((c) => c.name === location.country);
+              const stateNames = selected && selected.states 
+              ? selected.states.map((state) => state.name) 
+              : [];
+              setStates(stateNames);
+              console.log("state", selectedState, "loc",location.state)
+            };
+            setSelectedState(location.state)
+            handleStateChange()
+          },[selectedState,location.state,location.country])
 
       useEffect(() => {
         
@@ -96,7 +98,7 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
  
       useEffect(()=>{
         const handleNext=()=>{
-          if(location.country && ((location.phoneNumber).length>3)
+          if(location.country && ((location.contactNo).length>3) && (!phoneError)
   
           )
           setIsValidated(true)
@@ -106,20 +108,17 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
           
         }
         handleNext()
-      },[phoneNumber, selectedCountry])
+      },[contactNo, selectedCountry])
       
-    const handleCountryChange = (countryName) => {
-        
+      const handleCountryChange = (countryName) => {
+        setSelectedCountry(countryName);
         setSelectedState(""); 
         setSelectedCity("");
         setCity([])
-        console.log("cname",countryName)
         
-        const selected = countries.find((c) => c.iso2 === countryName);
-       const selectedCountryName = selected?.name
-       setSelectedCountry(selectedCountryName);
-       setLocation({ ...location, country: selectedCountryName })
-        const selectedPhone = PhoneDir.find((p) => p.name === selectedCountryName);
+        const selected = countries.find((c) => c.name === countryName);
+        setLocation({ ...location, country: countryName })
+        const selectedPhone = PhoneDir.find((p) => p.name === countryName);
         const iso2 = selectedPhone.code
         setFlag(iso2)
         setPhone(selectedPhone ? [ selectedPhone.dial_code ] : []);
@@ -127,42 +126,29 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
         ? selected.states.map((state) => state.name) 
         : [];
         setStates(stateNames);
-         
       };
+     
       
   const handleSubmit = (event) => {
     event.preventDefault();
+    if(location.country && location.contactNo ){
     
     if (onNext) onNext();
     
     handleAddressChange()
-    //   console.log({ username, email, password });
-    //   axios.post('',{
-    //     firmName:firmname,
-    //     email:email,
-    //     country:countries,
-    //     state: states,
-    //     city:city,
-    //     address:address,
-    //     password:password,
-    //   })
-    //   .then((res)=>{
-    //     console.log(res)
-    //   })
-    //   .catch((err)=>{
-    //     console.log(err)
-    //   })
+    }
+   
     };
     const handleAddressChange=()=>{
-      setFormData({...formData, address: address + " " + selectedCity + " " + selectedState + " " + selectedCountry})
+      setFormData({...formData, address: location.address + " " + location.city + " " + location.state + " " + location.country})
             }
   return (
     <div 
     className="flex flex-1 items-center justify-center h-screen bg-indigo-200"
     >
-  <Card className="p-8 " >
+  <Card className="p-6 " >
   <CardBody >
-    <div className="mb-6">
+    <div className="">
   <ul className="steps ">
         <li className="step step-primary">Register</li>
   <li className="step step-primary">Choose location</li>
@@ -174,97 +160,72 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
   <form  className="w-full justify-center items-center  " onSubmit={handleSubmit} >
       
   <div className="flex  w-full mb-4  mt-2 md:mt-4 gap-4">
+  <label className="form-control w-full ">
+      <div className= "label">
+      <span className="label-text">Select Country</span>
+      </div>
+  <select
+  className="select select-bordered w-full text-black "
+  id="country"
+  value={location.country}
+  onChange={(e) => handleCountryChange(e.target.value)}
+  required
+>
+  <option select disabled>
+    {location.country}
+  </option>
+  {countries.map((country) => (
+    <option key={country.name} value={country.name}>
+      {country.name}
+    </option>
+  ))}
+</select>
+</label>
+        </div>
+        <div className="flex  w-full mb-4  mt-2 md:mt-4 gap-4">
+        <label className="form-control w-full ">
+      <div className= "label">
+      <span className="label-text">Select State</span>
+      </div>
+        <select
+  className="select select-bordered w-full text-black"
+  id="state"
+  value={location.state}
+  onChange={(e) => {setSelectedState(e.target.value);
+    setLocation({ ...location, state:  e.target.value })}
+  }
+>
+  <option> {location.state}
+  </option>
+  {states.map((state, index) => (
+    <option key={index} value={state}>
+      {state}
+    </option>
+  ))}
+</select>
+</label>
+        </div>
+        <div className="flex  w-full mb-4  mt-2 md:mt-4 gap-4">
+        <label className="form-control w-full ">
+      <div className= "label">
+      <span className="label-text">Select City</span>
       
-          <Select
-             label="Country"
-             labelPlacement="outside"
-             variant="bordered"
-             placeholder={location.country}
-             value= {location.country}
-             renderValue= {location.country}
-             id="country"
-            //  value={selectedCountry}
-             onChange={(e) => {
-              handleCountryChange(e.target.value);
-              
-            }}
-            
-            startContent={
-              <LocIcon
-               className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-            }
-            // isRequired
-            
-          >
-            
-            {countries.map((c) => (
-              <SelectItem  key={c.iso2} value={c.name}>
-               {c.name}
-              </SelectItem>
-            ))}
-          </Select>
-        
-          
-        </div>
-        <div className="flex  w-full mb-4  mt-2 md:mt-4 gap-4">
- 
-          <Select
-          
-            label="State"
-            labelPlacement="outside"
-            variant="bordered"
-            value={location.state}
-            placeholder={location.state}
-            startContent={
-              <LocIcon
-               className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-            }
-            id="states"
-            // value={selectedState}
-            onChange={(e) => {setSelectedState(e.target.value);
-              setLocation({ ...location, state:  e.target.value })
-              }
-             }
-            disabled={!states.length}
-            // isRequired
-          >
-            {states.map((state) => (
-              <SelectItem  key={state} value={state}>
-                {state}
-              </SelectItem>
-            ))}
-          </Select>
-         
-         
-        </div>
-        <div className="flex  w-full mb-4  mt-2 md:mt-4 gap-4">
-        
-          <Select
-            label="City"
-            labelPlacement="outside"
-            placeholder={location.city}
-            value={location.city}
-            variant="bordered"
-            startContent={
-              <LocIcon
-               className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-            } 
+      </div>
+        <select
+            className="select select-bordered w-full"
             id="city"
-            // value={selectedCity}
+            value={location.city}
             onChange={(e) => {setSelectedCity(e.target.value);
-              setLocation({ ...location, city:  e.target.value })
-            }
-             }
-            disabled={!city.length}
-            // isRequired
+                setLocation({ ...location, city:  e.target.value })}}
           >
-            {city.map((city ) => (
-              <SelectItem  key={city} value={city}>
-                {city}
-              </SelectItem>
+            <option >{location.city}</option>
+            {city.map((s, index) => (
+              <option  key={index} value={s}>
+                {s}
+              </option>
             ))}
-          </Select>
- 
+          </select>
+ </label>
         </div>
         <div className="flex w-full  mt-2 md:mt-4 gap-4">       
                 <Input
@@ -287,55 +248,46 @@ export const Location = ({ onPrevious, onNext, formData,setFormData,location,set
                       }}             
                   />
                 </div>
-        <div className=" flex w-full mt-2 mb-4 md:mt-4 gap-4">
-          
-      
- 
+        <div className=" flex w-full mt-2  md:mt-4 gap-4">
           <Input
            label="Phone Number"
            labelPlacement="outside"
            placeholder="Enter your Phone Number"
            variant="bordered"
-           type="number"
-           value= {location.phoneNumber}
+           value= {location.contactNo}
            minLength={4}
-          //  validate={(value)=>{
-              // const phoneRegex = /^\+?[\d\s\-\(\)]+$/; 
-              // if (!phoneRegex.test(value)) {
-              //   return"Invalid Phone Number Format";
-              // } else {
-              //   return value ==null;
-              // }
-              // if (value.length<=3) {
-              //     return "Number is too short";
-              //   } else {
-              //     return value == null;
-              //   }
-          //  }}
+           validate={(value)=>{
+              const phoneRegex = /^\+?[\d\s\-\(\)]+$/; 
+              if (!phoneRegex.test(value)) {
+                setPhoneError("Invalid Phone Number Format")
+                return "Invalid Phone Number Format";
+              } else {
+                setPhoneError("")
+                return value ==null;
+              }
+           }}
            startContent={
            ( location.phone && <span>{location.phone}
-             {/* <PhoneIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" /> */}
             </span>) 
            }
            endContent={
             flag && (
-              <ReactCountryFlag
-              countryCode={flag}
+              <Flag code={flag} 
               svg
               style={{
-              width: "0.5em",
-              height: "1em",
+              width: "2em",
+              height: "2em",
               marginRight: "0.5em",
               }}
           />
               )
-           }autoComplete="off"
-            name="phoneNumber"
-            id="phoneNumber"
-            // value={phoneNumber}
-            onChange={(e) => {setPhoneNumber(e.target.value);
-              setFormData({ ...formData, phoneNumber: phone + e.target.value });
-              setLocation({ ...location, phoneNumber: e.target.value })
+           }
+           autoComplete="off"
+            name="contactNo"
+            id="contactNo"
+            onChange={(e) => {setContactNo(e.target.value);
+              setFormData({ ...formData, contactNo: phone + e.target.value });
+              setLocation({ ...location, contactNo: e.target.value })
             }
              }
             required

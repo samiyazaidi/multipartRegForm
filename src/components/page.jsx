@@ -1,28 +1,30 @@
 import { Button } from "@nextui-org/button";
 import { useState } from "react";
-import { Location } from "./loc"
+import { Location } from "./location"
 import { Register } from "./register"
 import Device from "./device"; 
-import OTP from "./ot";
+import OTP from "./otp";
 
-const Page=()=>{
+export const Page=()=>{
     const [page,setPage] =useState(0);
     const [formData,setFormData] = useState({
-        firmname: "",
+        firmName: "",
         email: "",
         address: "",
         password: "",
-        phoneNumber: "",
-        deviceId: "",
-        serialNumber: "",
+        contactNo: "",
+        productsList: [],
+        otp:""
     })
     const[location,setLocation] =useState({
-        country: "Select Your Country",
-        state: "Select Your State",
-        city: "Select Your City",
+        country: "",
+        state: "",
+        city: "",
         address: "",
         phone:"",
-        phoneNumber: 0
+        deviceId: "",
+        serialNo: "",
+        contactNo: ""
     })
     const goToPreviousPage =()=>{
         setPage((current)=> current - 1)
@@ -50,11 +52,15 @@ const Page=()=>{
             return <Device onPrevious={goToPreviousPage}
             onNext={goToNextPage}
             formData = {formData}
-            setFormData={setFormData}/>
+            setFormData={setFormData}
+            location={location}
+            setLocation={setLocation}/>
         }
         else {
             return <OTP
             onPrevious={goToPreviousPage}
+            setFormData={setFormData}
+            location={location}
             formData = {formData}
             />;
         }
@@ -69,4 +75,3 @@ return(
 
 
 }
-export default Page;

@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import React from 'react';
 import {Input} from '@nextui-org/input';
-import {  LockIcon, MailIcon } from "./mailicon";
+import {  LockIcon, MailIcon } from "./icons";
 import { EyeFilledIcon } from "./eyeicon";
 import { EyeSlashFilledIcon } from "./eyeicon";
 import {Button} from "@nextui-org/react";
 import {Card, CardBody} from "@nextui-org/react";
+import { useMutation } from "@tanstack/react-query";
+import { signin } from "./apiService";
+import {Image} from "@heroui/image";
 
 export const SignIn = () => {
 
@@ -15,6 +18,7 @@ export const SignIn = () => {
   const [emailError, setEmailError] = useState("");
   const toggleVisibility = () => setIsVisible(!isVisible);
   const [isVisible, setIsVisible] = React.useState(false);
+  const [passwordError, setPasswordError] = useState("");
   useEffect(()=>{
     const validateEmail = (email) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,39 +42,65 @@ export const SignIn = () => {
       setEmailError("");
     }
   }, [email]);
+   useEffect(()=>{
+          const validatePassword = (password,confirmPassword) => {
+            const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$#()-/+|^{}_"':;.,><=!%*?&])[A-Za-z\d@$!^+[_{}/"-><:';.,()#-%*?&]{8,}$/;
+            return passRegex.test(password);
+          };
+          if (password) {
+            
+            if (!/[!@#+-_=$%^&*(),.?":{}|<>]/.test(password)) {
+              setPasswordError("Password must contain a special character");
+            } else if (!/[A-Z]/.test(password)) {
+              setPasswordError("Password must contain an uppercase letter");
+            } else if (!/[a-z]/.test(password)) {
+              setPasswordError("Password must contain a lowercase letter");
+            } else if (!/\d/.test(password)) {
+              setPasswordError("Password must contain a number");
+            } else if (password.length < 8) {
+              setPasswordError("Password must be at least 8 characters long");
+            } else if (!validatePassword(password)) {
+              setPasswordError("Invalid password format");
+            } else {
+              setPasswordError(""); 
+            }
+           } else {
+              setPasswordError("");
+            }
+   },[password])
 
-
+ const {mutate} = useMutation({
+   mutationFn:signin,
+   onSuccess: (response)=>{
+     alert("User exist" );
+     console.log('Login:', response.data)
+   },
+   onError:(error)=>{
+     alert("User does not exist" );
+   }
+ 
+ })
   const handleSubmit = (event) => {
     event.preventDefault();
-    
-    //   console.log({ username, email, password });
-    //   axios.post('',{
-    //     firmName:firmname,
-    //     email:email,
-    //     country:countries,
-    //     state: states,
-    //     city:city,
-    //     address:address,
-    //     password:password,
-    //   })
-    //   .then((res)=>{
-    //     console.log(res)
-    //   })
-    //   .catch((err)=>{
-    //     console.log(err)
-    //   })
+    const  details = { email,password} 
+    mutate(details)
+  
     };
 
   return (
-    <div 
-    className="flex flex-1 items-center justify-center h-screen bg-indigo-200"
-    >
-  <Card  >
-  <CardBody >
-  <h1 className = "text-xl font-bold text-center" >Login</h1>
-  <form  className="w-full justify-center items-center  " onSubmit={handleSubmit} >
+    <div className="w-full h-screen flex flex-col sm:flex-row">
+      <div className="relative w-full sm:w-1/2 h-1/3 sm:h-full">
+    <img src="https://c2hr.org/wp-content/uploads/2020/02/iStock-962005986.jpg" 
+    className="w-full h-full object-cover  "/>
+    </div>
+      <div className="  sm:w-1/2 h-full flex flex-col p-10 xl:px-20 lg:px-20 justify-center ">
+  <h1 className = "text-4xl font-bold xl:mt-6 mb-8 xl:mb-2 md:text-start text-center xl:px-20 " >Login</h1>
+  <p className="xl:px-20 mb-10 xl:mt-4 md:text-start text-center">Welcome Back! Please Login to your account.</p>
+  <form  className="xl:px-20" onSubmit={handleSubmit} >
       
-        <div className="flex w-full flex-wrap md:flex-nowrap mb-2 md:mb-4 gap-4">
+        <div 
+        className="flex w-full flex-wrap md:flex-nowrap sm:flex-nowrap mb-8 md:mb-6 gap-4"
+        >
                
                <Input
                    label="Email"
@@ -80,7 +110,7 @@ export const SignIn = () => {
                    startContent={
                      <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                    }
-                   type="email"
+                   type="text"
                    autoComplete="off"
                    name="email"
                    id="email"
@@ -88,10 +118,10 @@ export const SignIn = () => {
                    onChange={(e) => setEmail(e.target.value)}
                    
                  />
-                 <span style={{ color: 'red' }}>{emailError}</span>
+                
                </div>
-        
-               <div className="flex w-full flex-wrap md:flex-nowrap mb-2 md:mb-4 gap-4">
+               <span style={{ color: 'red',fontSize: '13px'  }}>{emailError}</span>
+               <div className="flex w-full flex-wrap md:flex-nowrap mt-8  gap-4">
         <Input
       labelPlacement="outside"
       endContent={
@@ -123,23 +153,24 @@ export const SignIn = () => {
             variant="bordered"
             onChange={(e) => setPassword(e.target.value)}        
           />
-         
           
           </div> 
-          
-        <Button radius="sm"  type="submit" className="w-full  text-[18px] bg-gradient-to-tr from-purple-400 to-indigo-300 text-white shadow-lg" >
+          <span className="text-sm  text-blue-600 hover:text-black">
+             <Link to="/forgotpassword">Forgot password?</Link>
+          </span>
+        <Button radius="sm"  type="submit" className="w-full mt-8  mb-4 text-[18px] bg-gradient-to-tr from-blue-600 to-indigo-300 text-white shadow-lg" >
           Login
         </Button>
-        <div className="text-center">
-          <span className="text-sm ">
-            New Here? <Link to="/">Register</Link>
+      </form>
+      <div className="text-center ">
+          <span className="text-sm text-blue-600 hover:text-black">
+            Don't have an account yet? <Link to="/form">Register</Link>
           </span>
         
         </div>
-      </form>
       
-      </CardBody>
-</Card>
+    </div>
+    
     </div>
   );
 };
