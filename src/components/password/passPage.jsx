@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {ForgotPassword} from "./forgotPassword";
 import { OtpPassword } from "./otpPassword";
 
-export const resetPasswordPage = () => {
+export const PassPage = () => {
     const [page, setPage] = useState(0);
     const [ details ,setDetails] = useState({
         email: ""
