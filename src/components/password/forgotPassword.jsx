@@ -8,7 +8,7 @@ import {Card, CardBody} from "@nextui-org/react";
 import { useQuery } from "@tanstack/react-query";
 import { duplicateEmailCheck } from "../apiService";
 
-import Keys from '../../assets/keys.png'
+// import Keys from '../../assets/keys.png'
 import { otpVerification, signin } from "../apiService";
 export const ForgotPassword = ({onNext,details,setDetails}) => {
 
